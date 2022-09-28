@@ -1,18 +1,37 @@
 const http = require("http");
+const fs = require("fs");
+var msg = undefined;
 const server = http.createServer((req, res) => {
-  // console.log(req.method, req.headers, req.url);
-  res.setHeader("Content-Type", "text/html");
-  res.write("Node Project");
-  res.write("add /node or /home or /about to url go to that page");
-  res.write("<br>");
-  if (req.url == "/home") {
-    res.write("Home Page");
-  } else if (req.url == "/about") {
-    res.write("About Page");
-  } else if (req.url == "/node") {
-    res.write("welcome to node project");
+  const url = req.url;
+  const method = req.method;
+  if (url === "/") {
+    res.write("<html>");
+    res.write("<head><title>Enter Message</title><head>");
+    res.write(`${msg}`);
+    res.write(
+      '<body><form action="/message" method="POST"><input type="text" name="message"><button type="submit">Send</button></form></body>'
+    );
+    res.write("</html>");
+    return res.end();
   }
-  res.end();
-  // process.exit();
+  if (url === "/message" && method === "POST") {
+    const body = [];
+    req.on("data", (chunk) => {
+      console.log(chunk);
+      body.push(chunk);
+    });
+
+    req.on("close", () => {
+      const parsedBody = Buffer.concat(body).toString();
+      const message = parsedBody.split("=")[1];
+      fs.writeFile("./message.txt", message, (err) => {
+        msg = message;
+        res.statusCode = 302;
+        res.setHeader("Location", "/");
+        return res.end();
+      });
+    });
+  }
 });
-server.listen(4000);
+
+server.listen(3000);
