@@ -20,12 +20,12 @@ const routeHandler = (req, res) => {
       console.log(chunk);
       body.push(chunk);
     });
-
     req.on("close", () => {
       const parsedBody = Buffer.concat(body).toString();
       const message = parsedBody.split("=")[1];
       fs.writeFile("./message.txt", message, (err) => {
         msg = message;
+
         res.statusCode = 302;
         res.setHeader("Location", "/");
         return res.end();
